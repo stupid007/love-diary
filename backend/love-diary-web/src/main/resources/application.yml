@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: love-diary
+server:
+  port: 8090
