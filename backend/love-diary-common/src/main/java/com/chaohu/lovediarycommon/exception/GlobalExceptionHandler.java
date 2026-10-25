@@ -14,7 +14,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BizException.class)
     public Result<Void> handleBizException(BizException e) {
         log.warn("业务异常:{}", e.getMessage());
-        return Result.fail(e.getMessage());
+        return Result.fail(e.getCode(),e.getMessage());
     }
 
     // 统一处理 Spring 参数校验异常，当 @Valid/@Validated 校验失败时会进入此方法

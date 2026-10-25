@@ -1,5 +1,36 @@
-spring:
-  application:
-    name: love-diary
 server:
   port: 8090
+spring:
+  application:
+      name: love-diary
+  # ── 数据源 ──────────────────────────────────────────
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 参数说明：
+    #   serverTimezone  → 时区，不写会报 "The server time zone value ... is unrecognized"
+    #   useSSL=false    → 本地开发关掉 SSL，否则控制台一直刷警告
+    #   allowPublicKeyRetrieval=true → MySQL 8 默认 caching_sha2_password，不加会连不上
+    url: jdbc:mysql://127.0.0.1:3306/love_diary?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: password
+
+  # ── JSON 序列化 ─────────────────────────────────────
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+
+# ── MyBatis-Plus ────────────────────────────────────
+mybatis-plus:
+  # 下划线转驼峰：数据库 create_time → 实体 createTime，必开
+  configuration:
+    map-underscore-to-camel-case: true
+    # 把执行的 SQL 打到控制台，学习期强烈建议开
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto          # 主键用数据库自增
+# ── 自定义 JWT 配置 ─────────────────────────────────
+jwt:
+  # ⚠️ 必须 >= 32 个字符（256 bit），否则 jjwt 抛 WeakKeyException
+  secret: love-diary-jwt-secret-key-change-me-in-prod-2026
+  expire: 604800000          # token 有效期：7 天（单位毫秒）

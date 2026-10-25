@@ -1,54 +1,124 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.1.1</version>
-		<relativePath/> <!-- lookup parent from repository -->
-	</parent>
-	<groupId>com.chaohu</groupId>
-	<artifactId>love-diary-web</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>love-diary-web</name>
-	<description>love-diary-web</description>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
-	<properties>
-		<java.version>17</java.version>
-	</properties>
-	<dependencies>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webmvc</artifactId>
-		</dependency>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webmvc-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
+    <parent>
+        <groupId>com.chaohu</groupId>
+        <artifactId>love-diary</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-		</plugins>
-	</build>
+    <artifactId>love-diary-web</artifactId>
+    <name>love-diary-web</name>
+    <description>Web 层：启动类、Controller、Filter、ShiroConfig</description>
 
+    <dependencies>
+        <!-- Web MVC 能力。
+             注意 starter 名字随 Boot 版本变过：
+               Boot 3.x → spring-boot-starter-web
+               Boot 4.x → spring-boot-starter-webmvc（改名了，别混用） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- 依赖 service，从而传递拿到 repository + model + common -->
+        <dependency>
+            <groupId>com.chaohu</groupId>
+            <artifactId>love-diary-service</artifactId>
+        </dependency>
+
+        <!-- ============================================================
+      Shiro 2.2.1 —— Boot 3 必须用 jakarta classifier
+      ============================================================
+      ⚠️ 千万不要 import shiro-bom！
+         它的父 pom shiro-root 把 Spring 全家桶钉在 5.3.39，
+         import 进来会覆盖 Boot 的 Spring 6.2.19，
+         导致 spring-web 退回 javax 版，报
+         NoClassDefFoundError: javax/servlet/ServletRequest
+      所以这里全部显式声明：version + classifier + 必要的排除。
+      ============================================================ -->
+
+        <!-- ① Web 应用入口 starter -->
+        <dependency>
+            <groupId>org.apache.shiro</groupId>
+            <artifactId>shiro-spring-boot-web-starter</artifactId>
+            <version>${shiro.version}</version>
+            <classifier>jakarta</classifier>
+            <exclusions>
+                <!-- Shiro 强制引入 Log4j2 并排掉 Logback，会和 Boot 默认的 Logback 冲突 -->
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-log4j2</artifactId>
+                </exclusion>
+                <!-- 排掉 javax 版，下面用 jakarta 版补回来 -->
+                <exclusion>
+                    <groupId>org.apache.shiro</groupId>
+                    <artifactId>shiro-spring-boot-starter</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- ② Spring Boot 自动装配（jakarta 版） -->
+        <dependency>
+            <groupId>org.apache.shiro</groupId>
+            <artifactId>shiro-spring-boot-starter</artifactId>
+            <version>${shiro.version}</version>
+            <classifier>jakarta</classifier>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-log4j2</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.shiro</groupId>
+                    <artifactId>shiro-spring</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- ③ Spring 集成（jakarta 版）
+             —— ShiroWebFilterConfiguration / ShiroFilterChainDefinition 在这里。
+             它会正常带入 shiro-core（不加排除），所以 AuthorizationInfo / AuthorizingRealm 能解析。 -->
+        <dependency>
+            <groupId>org.apache.shiro</groupId>
+            <artifactId>shiro-spring</artifactId>
+            <version>${shiro.version}</version>
+            <classifier>jakarta</classifier>
+            <exclusions>
+                <!-- shiro-spring 的 pom 里声明了 shiro-web（compile 作用域），排掉它 -->
+                <exclusion>
+                    <groupId>org.apache.shiro</groupId>
+                    <artifactId>shiro-web</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- ④ Web 集成（jakarta 版）—— DefaultWebSecurityManager / AuthenticatingFilter 在这里 -->
+        <dependency>
+            <groupId>org.apache.shiro</groupId>
+            <artifactId>shiro-web</artifactId>
+            <version>${shiro.version}</version>
+            <classifier>jakarta</classifier>
+        </dependency>
+
+        <!-- 校验实现（Hibernate Validator）+ ValidationAutoConfiguration。
+     没有它，@Valid 不会生效，注解就是个摆设。 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- 只有 web 模块有 main 方法，所以 repackage 插件只放在这里 -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 </project>

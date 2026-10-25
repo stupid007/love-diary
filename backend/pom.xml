@@ -2,18 +2,43 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
+    <!-- 唯一的「外部父」：Spring Boot 官方父工程，负责管理 Spring 全家桶的版本 -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.1</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <!-- ============================================================
+             【2026-10-11】从 4.1.1 降级到 3.5.16
+             ============================================================
+             降级原因（踩过的坑，别再升回去）：
+             1. Boot 4.1.1 强制搭配 JUnit 6（junit-bom 6.0.3）。
+                JUnit Platform 6.0 删除了 MethodSelector.getMethodParameterTypes()，
+                而 IDEA 2024.1 自带的测试运行器（com.intellij.junit5.*）编译时绑定了它，
+                点 ▶ 跑测试就报 NoSuchMethodError。
+             2. 只把 JUnit 单独降回 5.x 也救不了 —— Spring Framework 7（Boot 4 依赖）是按
+                Jupiter 6 编译的，SpringExtension 调用了 6.0 才改名的方法：
+                  NoSuchMethodError: ExtensionContext$Store.computeIfAbsent(Object, Function, Class)
+                  at SpringExtension.getTestContextManager
+             3. 结论：Boot 4 + IDEA 2024.1 不兼容，只能整体退回 3.5.x。
+
+             附带收益：Boot 3.5 用 JUnit 5.x，IDEA 2024.1 原生支持；
+             Shiro 2.x / MyBatis-Plus boot3 starter 生态成熟，中文教程极多，适合学习期。
+
+             3.5.16 是 3.x 线的最后版本。将来若升级 IDEA 到 2025.x+，可以考虑再升 Boot 4。
+             ============================================================ -->
+        <version>3.5.16</version>
+        <relativePath/> <!-- 从本地/远程仓库查找，不是从上级目录 -->
     </parent>
+
+    <!-- 本工程坐标。packaging=pom 表示它不产出 jar，只做「父工程 + 聚合器」 -->
     <groupId>com.chaohu</groupId>
     <artifactId>love-diary</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>love-diary</name>
-    <description>love-diary</description>
     <packaging>pom</packaging>
+    <name>love-diary</name>
+    <description>恋爱日记 - 多模块父工程</description>
+
+    <!-- 聚合：在 backend/ 下执行 mvn 时，按此顺序构建子模块 -->
     <modules>
         <module>love-diary-common</module>
         <module>love-diary-model</module>
@@ -21,42 +46,98 @@
         <module>love-diary-service</module>
         <module>love-diary-web</module>
     </modules>
-    <url/>
-    <licenses>
-        <license/>
-    </licenses>
-    <developers>
-        <developer/>
-    </developers>
-    <scm>
-        <connection/>
-        <developerConnection/>
-        <tag/>
-        <url/>
-    </scm>
+
     <properties>
         <java.version>17</java.version>
+        <mybatis-plus.version>3.5.17</mybatis-plus.version>
+        <jjwt.version>0.12.5</jjwt.version>
+        <!-- Shiro 2.x 是 Jakarta EE 10（jakarta.servlet），配 Spring Boot 3；2.2.1 是 2.x 最后版本 -->
+        <shiro.version>2.2.1</shiro.version>
     </properties>
+
+    <!-- 版本集中营：这里只「声明版本」，不真正引入依赖。子模块引用时可省略 <version> -->
+    <dependencyManagement>
+        <dependencies>
+            <!-- 本工程的 5 个模块。用 ${project.version} 保证与父工程同版本 -->
+            <dependency>
+                <groupId>com.chaohu</groupId>
+                <artifactId>love-diary-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.chaohu</groupId>
+                <artifactId>love-diary-model</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.chaohu</groupId>
+                <artifactId>love-diary-repository</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.chaohu</groupId>
+                <artifactId>love-diary-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.chaohu</groupId>
+                <artifactId>love-diary-web</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- 三方依赖：版本统一在此锁定，子模块不再各写各的 -->
+
+            <!-- MyBatis-Plus：Boot 3 用 boot3 starter（Boot 4 才用 boot4 starter）。
+                 注意版本必须 >= 3.5.9：更早的版本内置 mybatis-spring 3.0.3，
+                 配 Spring 6.2+ 会报 "Invalid value type for attribute 'factoryBeanObjectType'"。 -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+
+            <!-- JWT 工具库 (JJWT) -->
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-api</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-impl</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-jackson</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- 这里是 <dependencies>（不是 dependencyManagement），表示 5 个子模块「全都继承」这些依赖 -->
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
     </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
-
+    <!-- 注意：这里故意不声明 spring-boot-maven-plugin！
+         它的 repackage 目标要求模块存在 main 方法，只应放在 love-diary-web 里。 -->
 </project>
