@@ -44,8 +44,8 @@ public class ShiroConfig {
 
     /** bean 名 "jwt" 就是下面过滤链里引用的名字 */
     @Bean(name = "jwt")
-    public JwtFilter jwtFilter() {
-        return new JwtFilter();
+    public JwtFilter jwtFilter(JWTUtil jwtUtil) {
+        return new JwtFilter(jwtUtil);
     }
 
     /**

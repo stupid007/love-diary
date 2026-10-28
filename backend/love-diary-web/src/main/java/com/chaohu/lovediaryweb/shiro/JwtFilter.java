@@ -1,6 +1,10 @@
 package com.chaohu.lovediaryweb.shiro;
 
 import com.chaohu.lovediarycommon.constant.SecurityConstant;
+import com.chaohu.lovediarycommon.context.UserContext;
+import com.chaohu.lovediarycommon.util.JWTUtil;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,6 +26,28 @@ import java.io.IOException;
  * 验签逻辑【不在】这里，在 JwtRealm 里 —— 这是 Shiro 的设计分工。
  */
 public class JwtFilter extends AuthenticatingFilter {
+    //
+    private final JWTUtil jwtUtil;
+    public JwtFilter(JWTUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
+    }
+
+    @Override
+    //
+    public void doFilterInternal(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        try {
+            // 获取token
+            String jwt = resolveToken((HttpServletRequest) request);
+            if (StringUtils.hasText(jwt)) {
+                try {
+                    UserContext.set(jwtUtil.getUserId(jwt),jwtUtil.getUserName(jwt));
+                } catch (Exception e) {}
+            }
+            super.doFilterInternal(request, response, chain);
+        } finally {
+            UserContext.clear();
+        }
+    }
     /**
      * 从请求里取出 token 包装成 JwtToken。取不到返回 null
      */

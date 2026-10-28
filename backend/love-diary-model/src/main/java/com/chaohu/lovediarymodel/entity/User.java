@@ -43,4 +43,13 @@ public class User {
 
     /** 数据库有 ON UPDATE CURRENT_TIMESTAMP，更新时留 null 即可 */
     private LocalDateTime updateTime;
+
+    // 情侣关系ID，未绑定时才有值，绑定成功后清空
+    private Long coupleId;
+
+    // 邀请码
+    private String inviteCode;
+
+    // 是否曾经绑定过;
+    private Integer everBound;
 }
