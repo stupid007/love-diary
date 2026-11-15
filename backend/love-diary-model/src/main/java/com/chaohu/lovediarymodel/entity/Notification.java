@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Data
 @TableName("notification")
-public class Natification {
+public class Notification {
     @TableId(type = IdType.AUTO)
     private Long id;
     // 收件人ID
@@ -23,7 +23,7 @@ public class Natification {
     // 关联对象
     private Long refId;
     // 是否已读
-    private Integer isRedad;
+    private Integer isRead;
     // 创建时间
     private LocalDateTime createTime;
     // 更新时间
