@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
-import { Document, Picture, Clock, Calendar, Sunny, User } from '@element-plus/icons-vue'
+import { Document, Picture, Clock, Calendar, Sunny, User, Link} from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -36,6 +36,12 @@ const navs = [
         label: '我',
         path: '/settings',
         icon: User
+    },
+        // 情侣关系入口（排在"我"之前）
+    {
+        label: '情侣关系绑定',
+        path: '/couple',
+        icon: Link
     },
 ]
 </script>

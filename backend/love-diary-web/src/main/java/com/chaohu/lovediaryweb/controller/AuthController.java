@@ -28,4 +28,9 @@ public class AuthController {
         LoginVO login = userService.login(user);
         return Result.success(login);
     }
+
+    @PostMapping("/logout")
+    public Result<Void> loginOut() {
+        return Result.success();
+    }
 }

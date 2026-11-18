@@ -74,7 +74,10 @@ public class ShiroConfig {
         definition.addPathDefinition("/auth/register", "anon");   // 注册免登录
         definition.addPathDefinition("/auth/login", "anon");      // 登录免登录
         definition.addPathDefinition("/hello", "anon");           // 保留的测试接口
-        definition.addPathDefinition("/**", "jwt");               // 其余全部需要 token
+        // 退出登录放行：即使 token 过期也能拿到成功响应，前端照样清本地
+        definition.addPathDefinition("/auth/logout", "anon");// 其余全部需要 token
+        definition.addPathDefinition("/**", "jwt");
+
         return definition;
     }
 }

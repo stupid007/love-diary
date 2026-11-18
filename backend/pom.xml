@@ -53,6 +53,10 @@
         <jjwt.version>0.12.5</jjwt.version>
         <!-- Shiro 2.x 是 Jakarta EE 10（jakarta.servlet），配 Spring Boot 3；2.2.1 是 2.x 最后版本 -->
         <shiro.version>2.2.1</shiro.version>
+        <!-- Hutool 版本，集中管理，子模块引用时不用写 version -->
+        <hutool.version>5.8.27</hutool.version>
+        <!-- Apache Commons Lang3 版本 -->
+        <commons-lang3.version>3.19.0</commons-lang3.version>
     </properties>
 
     <!-- 版本集中营：这里只「声明版本」，不真正引入依赖。子模块引用时可省略 <version> -->
@@ -111,6 +115,18 @@
                 <groupId>io.jsonwebtoken</groupId>
                 <artifactId>jjwt-jackson</artifactId>
                 <version>${jjwt.version}</version>
+            </dependency>
+            <!-- Hutool 工具库：判空、日期、Bean 拷贝都用它 -->
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
+            <!-- Commons Lang3：StringUtils / ObjectUtils 作为补充 -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
             </dependency>
 
         </dependencies>

@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+import java.math.BigDecimal;
 @Data
 @TableName("user")
 public class User {
@@ -28,10 +29,10 @@ public class User {
      * 而是生成 UPDATE user SET deleted=1 WHERE id=?；
      * 所有查询会自动追加 WHERE deleted=0。
      *
-     * ⚠️ 字段名不能叫 delete —— delete 是 MySQL 保留字，
+     * 字段名不能叫 delete —— delete 是 MySQL 保留字，
      * 生成的 SQL（WHERE delete=0）会语法报错。
      *
-     * ⚠️ 数据库该列必须是 NOT NULL DEFAULT 0：这个字段为 null 时，
+     * 数据库该列必须是 NOT NULL DEFAULT 0：这个字段为 null 时，
      * MP 会把它从 INSERT 里省掉，若列又没有默认值就会报
      * "Field 'deleted' doesn't have a default value"。
      */
@@ -40,16 +41,27 @@ public class User {
 
     /** 数据库有 DEFAULT CURRENT_TIMESTAMP，插入时留 null 即可 */
     private LocalDateTime createTime;
-
     /** 数据库有 ON UPDATE CURRENT_TIMESTAMP，更新时留 null 即可 */
     private LocalDateTime updateTime;
-
     // 情侣关系ID，未绑定时才有值，绑定成功后清空
     private Long coupleId;
-
     // 邀请码
     private String inviteCode;
-
     // 是否曾经绑定过;
     private Integer everBound;
+    // 纬度，对应 user.latitude
+    private BigDecimal latitude;
+    // 经度，对应 user.longitude
+    private BigDecimal longitude;
+    // 位置名称，对应 user.location_name
+    private String locationName;
+    // 省份，对应 user.province
+    private String province;
+    // 城市，对应 user.city
+    private String city;
+    // 区县，对应 user.district
+    private String district;
+    // 头像，对应 user.avatar_url
+    private String avatarUrl;
+
 }
